@@ -5,6 +5,7 @@
 pip install -r requirements.txt
 ```
 3. Run `uvicorn app.main:app --reload` to start Uvicorn ASGI
+4. Go to `https://127.0.0.1:8000/` to test
 
 # Improvements to make
 - Create curated dictionaries of relevant terms specific to different job descriptions
