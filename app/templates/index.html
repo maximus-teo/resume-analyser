@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Resume Analyser</title>
+    </head>
+    <body>
+        <h1>Upload Resume and Job Description</h1>
+        <form action="/analyse" method="post" enctype="multipart/form-data">
+            <label for="resume">Resume PDF:</label>
+            <input type="file" name="resume" accept="application/pdf"><br><br>
+            <label for="jobdesc">Job Description PDF:</label>
+            <input type="file" name="jobdesc" accept="application/pdf"><br><br>
+            <button type="submit">Analyse</button>
+        </form>
+    </body>
+
+</html>
