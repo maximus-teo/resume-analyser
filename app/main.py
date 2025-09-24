@@ -1,22 +1,25 @@
 from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import tempfile
 from .utils import extract_pdf_text, match_score
 
 app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request":request})
 
-@app.post("/analyse")
+@app.post("/analyse", response_class=HTMLResponse)
 async def analyse(
+    request: Request,
     resume: UploadFile = File(...),
     jobdesc: UploadFile = File(...)
 ):
-    # temporarily save upload files
     with tempfile.NamedTemporaryFile(delete=False) as tmp_resume:
         tmp_resume.write(await resume.read())
         resume_path = tmp_resume.name
@@ -29,8 +32,11 @@ async def analyse(
 
     score, overlap, missing = match_score(resume_text, job_text)
 
-    return {
-        "match_score": score,
-        "matched_keywords": list(overlap),
-        "missing_keywords": list(missing)
-    }
+    return templates.TemplateResponse(
+        "results.html", 
+        {
+            "request": request,
+            "score": score,
+            "matched": sorted(overlap),
+            "missing": sorted(missing)
+        })

@@ -7,7 +7,7 @@ def extract_pdf_text(file_path: str) -> str:
 
 def extract_keywords(text: str) -> set:
     # split on non-letters, lowercase, filter out short words
-    words = re.findall(r'\b[a-zA-Z]{3,}\b', text.lower())
+    words = re.findall(r'\b[a-zA-Z]{4,}\b', text.lower())
     return set(words)
 
 def match_score(resume_text: str, job_text: str):

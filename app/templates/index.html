@@ -1,18 +1,19 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Resume Analyser</title>
-    </head>
-    <body>
-        <h1>Upload Resume and Job Description</h1>
-        <form action="/analyse" method="post" enctype="multipart/form-data">
-            <label for="resume">Resume PDF:</label>
-            <input type="file" name="resume" accept="application/pdf"><br><br>
-            <label for="jobdesc">Job Description PDF:</label>
-            <input type="file" name="jobdesc" accept="application/pdf"><br><br>
-            <button type="submit">Analyse</button>
-        </form>
-    </body>
-
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Analyser - Upload & Compare</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <h1>Upload Resume & Job Description</h1>
+    <form action="/analyse" method="post" enctype="multipart/form-data">
+      <label for="resume">Resume PDF:</label>
+      <input type="file" name="resume" accept="application/pdf" /><br /><br />
+      <label for="jobdesc">Job Description PDF:</label>
+      <input type="file" name="jobdesc" accept="application/pdf" /><br /><br />
+      <button type="submit">Analyse</button>
+    </form>
+  </body>
 </html>

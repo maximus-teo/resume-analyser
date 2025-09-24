@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Analyser - Results</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <h1>Your Results</h1>
+    <div class="results-container">
+      <h1>Match Score: {{ score }}%</h1>
+
+      <div class="keywords">
+        <h2>Matched Keywords</h2>
+        <ul>
+          {% for word in matched %}
+          <li>{{ word }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="keywords-missing">
+        <h2>Missing Keywords</h2>
+        <ul>
+          {% for word in missing %}
+          <li>{{ word }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <a href="/" class="back-link">Analyse another resume</a>
+    </div>
+  </body>
+</html>
