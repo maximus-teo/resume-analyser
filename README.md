@@ -11,3 +11,11 @@
 # Improvements to make
 - Create curated dictionaries of relevant terms specific to different job descriptions
 - Output results with better-looking HTML
+
+# Main idea
+- A resume and a job description are provided
+- Break the resume and job description down into their keywords
+- Identify 1-2 fields that fit the job description (e.g. engineering and science)
+- Match between both and find the percentage of matched keywords over total keywords
+- Give extra points for soft skills and even more points for matching technical skills (weighted accordingly)
+- List the matched words and missing words

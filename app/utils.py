@@ -1,14 +1,21 @@
 from pdfminer.high_level import extract_text
 import re
 from collections import Counter
+import spacy
+nlp = spacy.load("en_core_web_sm")
 
 def extract_pdf_text(file_path: str) -> str:
     return extract_text(file_path)
 
-def extract_keywords(text: str) -> set:
-    # split on non-letters, lowercase, filter out short words
-    words = re.findall(r'\b[a-zA-Z]{4,}\b', text.lower())
-    return set(words)
+def extract_keywords(text):
+    # use spacy to parse out noun chunks into a list and filter out NLP stop words
+    doc = nlp(text)
+    keywords = set()
+    for chunk in doc.noun_chunks:
+        token = chunk.text.lower().strip()
+        if len(token) > 2 and token not in nlp.Defaults.stop_words:
+            keywords.add(token)
+    return keywords
 
 def match_score(resume_text: str, job_text: str):
     resume_words = extract_keywords(resume_text)

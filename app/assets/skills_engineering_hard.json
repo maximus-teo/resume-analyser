@@ -1,0 +1,13 @@
+[
+  "Python", "Java", "JavaScript", "TypeScript", "C#", "C++", "Go",
+  "SQL", "NoSQL", "MongoDB", "PostgreSQL", "MySQL",
+  "REST API", "GraphQL",
+  "Docker", "Kubernetes", "AWS", "Azure", "Google Cloud Platform", "GCP",
+  "Linux", "Git", "CI/CD", "Jenkins", "Terraform",
+  "React", "Angular", "Vue", "Node.js", "Express",
+  "HTML", "CSS", "SASS", "Responsive Design",
+  "Testing", "Unit Testing", "Integration Testing", "Test-Driven Development",
+  "Microservices", "Machine Learning", "Data Structures", "Algorithms",
+  "Security", "OAuth", "Authentication", "Authorization",
+  "API Design", "Performance Optimization", "Debugging", "Version Control"
+]
