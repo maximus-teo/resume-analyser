@@ -15,7 +15,10 @@
 # Main idea
 - A resume and a job description are provided
 - Break the resume and job description down into their keywords
-- Identify 1-2 fields that fit the job description (e.g. engineering and science)
+- Identify 1 field that fits the job description (e.g. engineering or science)
 - Match between both and find the percentage of matched keywords over total keywords
 - Give extra points for soft skills and even more points for matching technical skills (weighted accordingly)
 - List the matched words and missing words
+
+Only meant to be a simple tool to match keywords between resume and job description.
+Will show overlaps and missing keywords (important ones, not so relevant ones)

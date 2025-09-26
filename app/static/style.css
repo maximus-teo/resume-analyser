@@ -5,13 +5,17 @@ body {
   color: #333;
 }
 
+.hidden {
+  display: none;
+}
+
 h1 {
   text-align: center;
   color: #444;
 }
 
 form {
-  max-width: 500px;
+  width: 700px;
   margin: 0 auto;
   background: white;
   padding: 1.5rem;
@@ -61,15 +65,25 @@ button:hover {
 
 .keywords li {
   display: inline-block;
-  background: #e3f2fd;
+  background: #cde9ff;
   color: #333;
   padding: 4px 8px;
   margin: 4px;
   border-radius: 4px;
 }
 
-.keywords.missing li {
-  background: #ffebee;
+.keywords-missing ul {
+  list-style: none;
+  padding: 0;
+}
+
+.keywords-missing li {
+  display: inline-block;
+  background: #ddd;
+  color: #333;
+  padding: 4px 8px;
+  margin: 4px;
+  border-radius: 4px;
 }
 
 .back-link {

@@ -22,4 +22,4 @@ def sort_json(input_filename, output_filename):
         print(f"Some error occurred: {e}")
 
 # INSERT YOUR FILE NAMES HERE
-sort_json('app/assets/skills_operations_hard2.json', 'app/assets/skills_operations_hard.json')
+sort_json('app/assets/skills_operations_hard.json', 'app/assets/skills_operations_hard_sorted.json')

@@ -24,4 +24,4 @@ def convert_txt_to_json(input_filename, output_filename):
         print(f"Some error occurred: {e}")
 
 # INSERT YOUR FILE NAMES HERE
-convert_txt_to_json('app/assets/data.txt', 'app/assets/skills_operations_hard2.json')
+convert_txt_to_json('app/assets/data.txt', 'app/assets/skills.json')

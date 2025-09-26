@@ -8,12 +8,68 @@
   </head>
   <body>
     <h1>Upload Resume & Job Description</h1>
-    <form action="/analyse" method="post" enctype="multipart/form-data">
-      <label for="resume">Resume PDF:</label>
-      <input type="file" name="resume" accept="application/pdf" /><br /><br />
-      <label for="jobdesc">Job Description PDF:</label>
-      <input type="file" name="jobdesc" accept="application/pdf" /><br /><br />
+    <form id="main-form" action="/analyse" method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
+      <strong>Tips for best results:</strong>
+      <ul>
+        <li>Upload only the Requirements/Qualifications/Skills section of the job listing.</li>
+        <li>Do not include other information like company history or benefits/perks section.</li>
+        <li>PDF or raw text is accepted.</li>
+        <li>This analyser searches for keywords, not entire sentences.</li>
+      </ul>
+      <label for="resume-type">Resume:</label>
+      <input type="radio" name="resume-type" checked="true" onclick="toggleResume('pdf-resume')">PDF</input>
+      <input type="radio" name="resume-type" onclick="toggleResume('text-resume')">Raw text</input>
+      <input type="file" name="resume_pdf" accept="application/pdf" id="pdf-resume"/>
+      <textarea cols="80" rows="10" name="resume_textarea" id="text-resume" class="hidden"></textarea><br /><br />
+
+      <label for="jobdesc-type">Job Description:</label>
+      <input type="radio" name="jobdesc-type" checked="true" onclick="toggleJobdesc('pdf-jobdesc')">PDF</input>
+      <input type="radio" name="jobdesc-type" onclick="toggleJobdesc('text-jobdesc')">Raw text</input>
+      <input type="file" name="jobdesc_pdf" accept="application/pdf" id="pdf-jobdesc"/>
+      <textarea cols="80" rows="10" name="jobdesc_textarea" id="text-jobdesc" class="hidden"></textarea><br /><br />
+
+      <label for="jobdesc_category">Job Category:</label>
+      <select name="jobdesc_category" id="jobdesc-category">
+        <option value="" disabled selected>Select your option</option>
+        <option value="corporate">Corporate</option>
+        <option value="engineering">Engineering</option>
+        <option value="finance">Finance</option>
+        <option value="marketing">Marketing</option>
+        <option value="operations">Operations/Project Management</option>
+        <option value="fallback">Others</option>
+        <option value="science">Sciences</option>
+      </select><br /><br />
+
       <button type="submit">Analyse</button>
     </form>
+    <script>
+      function toggleResume(selectedId) {
+        const pdf = document.getElementById("pdf-resume");
+        const txt = document.getElementById("text-resume");
+        pdf.classList.add('hidden');
+        txt.classList.add('hidden');
+        txt.value = '';
+        if (selectedId === "pdf-resume") pdf.classList.remove('hidden');
+        else if (selectedId === "text-resume") txt.classList.remove('hidden');
+      }
+      function toggleJobdesc(selectedId) {
+        const pdf = document.getElementById("pdf-jobdesc");
+        const txt = document.getElementById("text-jobdesc");
+        pdf.classList.add('hidden');
+        txt.classList.add('hidden');
+        txt.value = '';
+        if (selectedId === "pdf-jobdesc") pdf.classList.remove('hidden');
+        else if (selectedId === "text-jobdesc") txt.classList.remove('hidden');
+      }
+      function validateForm() {
+        const resumepdf = document.getElementById("pdf-resume");
+        const resumetxt = document.getElementById("text-resume");
+        const jobpdf = document.getElementById("pdf-jobdesc");
+        const jobtxt = document.getElementById("text-jobdesc");
+        if ((resumepdf.files.length === 0 && resumetxt.value === '') || (jobpdf.files.length === 0 && jobtxt.value === '')) {
+          alert("Upload both resume and job description with PDF or raw text.");
+        }
+      }
+    </script>
   </body>
 </html>
