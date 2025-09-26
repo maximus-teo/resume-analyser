@@ -1,24 +1,29 @@
 # How to use
-1. Start by creating a virtual environment (`venv`) with `python -m venv venv`
-2. Run `.\venv\Scripts\Activate.ps1` to access `venv`
-3. Make sure required packages are installed:
+1. Start by creating a virtual environment (`venv`) with
+    ```
+    python -m venv venv
+    ```
+2. Access the virtual environment
+    ```
+    .\venv\Scripts\Activate.ps1
+    ```
+3. Make sure all required packages are installed
     ```
     pip install -r requirements.txt
     ```
-4. Run `uvicorn app.main:app --reload` to start Uvicorn ASGI
+4. Reload Uvicorn ASGI
+    ```
+    uvicorn app.main:app --reload
+    ```
 5. Go to `https://127.0.0.1:8000/` to test
 
-# Improvements to make
-- Create curated dictionaries of relevant terms specific to different job descriptions
-- Output results with better-looking HTML
+# Tips for best results
+- Upload your resume as a PDF, but raw text is accepted
+- Upload only the Requirements/Qualifications/Skills section of the job listing
+- Do not upload any other info such as company history or benefits/perks
+- Select the job category that best fits the job listing
 
-# Main idea
-- A resume and a job description are provided
-- Break the resume and job description down into their keywords
-- Identify 1 field that fits the job description (e.g. engineering or science)
-- Match between both and find the percentage of matched keywords over total keywords
-- Give extra points for soft skills and even more points for matching technical skills (weighted accordingly)
-- List the matched words and missing words
-
-Only meant to be a simple tool to match keywords between resume and job description.
-Will show overlaps and missing keywords (important ones, not so relevant ones)
+# Note
+- This resume analyser searches for keywords and phrases, not entire sentences
+- Match score is based on number of overlaps between the resume and job listing
+- Bonus points are given if select keywords are found in the resume, job listing and the curated dictionary
