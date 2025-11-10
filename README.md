@@ -13,20 +13,24 @@ This Python tool helps you find key similarities and differences between your re
 - Bonus points are given if select keywords are found in the resume, job listing and the curated dictionary
 
 # How to use
-1. Start by creating a virtual environment (`venv`) with
+1. Clone this repository
+    ```
+    git clone https://github.com/maximus-teo/resume-analyser.git
+    ```
+2. Start by creating a virtual environment (`venv`) with
     ```
     python -m venv venv
     ```
-2. Access the virtual environment
+3. Access the virtual environment
     ```
     .\venv\Scripts\Activate.ps1
     ```
-3. Make sure all required packages are installed
+4. Make sure all required packages are installed
     ```
     pip install -r requirements.txt
     ```
-4. Reload Uvicorn ASGI
+5. Reload Uvicorn ASGI
     ```
     uvicorn app.main:app --reload
     ```
-5. Go to `https://127.0.0.1:8000/` to test
+6. Go to `https://127.0.0.1:8000/` to test
