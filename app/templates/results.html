@@ -9,27 +9,16 @@
   <body>
     <h1>Your Results</h1>
     <div class="results-container">
-      <h1>Match Score: {{ score }}% (Bonus: {{ bonus }}%)</h1>
+      <h1>Match Score: {{ score }}%</h1>
+      <p>Section score: {{ section_score }}%</p>
+      <p>Density: {{ density }}%</p>
+      <p>Semantic score: {{ semantic_score }}%</p>
 
       <div class="keywords">
-        {% if matched_rel_h|length > 0 %}
-        <h2>Matched Keywords (hard skills)</h2>
+        {% if matched_skills|length > 0 %}
+        <h2>Matched Hard Skills</h2>
         <ul>
-          {% for word in matched_rel_h %}
-          <li>{{ word }}</li>
-          {% endfor %}
-        </ul>
-        {% endif %} {% if matched_rel_s|length > 0 %}
-        <h2>Matched Keywords (soft skills)</h2>
-        <ul>
-          {% for word in matched_rel_s %}
-          <li>{{ word }}</li>
-          {% endfor %}
-        </ul>
-        {% endif %} {% if matched_ns|length > 0 %}
-        <h2>Matched Keywords (may be relevant)</h2>
-        <ul>
-          {% for word in matched_ns %}
+          {% for word in matched_skills %}
           <li>{{ word }}</li>
           {% endfor %}
         </ul>
@@ -41,20 +30,6 @@
         <h2>Missing Keywords (hard skills)</h2>
         <ul>
           {% for word in missing_rel_h %}
-          <li>{{ word }}</li>
-          {% endfor %}
-        </ul>
-        {% endif %} {% if missing_rel_s|length > 0 %}
-        <h2>Missing Keywords (soft skills)</h2>
-        <ul>
-          {% for word in missing_rel_s %}
-          <li>{{ word }}</li>
-          {% endfor %}
-        </ul>
-        {% endif %} {% if missing_ns|length > 0 %}
-        <h2>Missing Keywords (could be irrelevant)</h2>
-        <ul>
-          {% for word in missing_ns %}
           <li>{{ word }}</li>
           {% endfor %}
         </ul>

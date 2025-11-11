@@ -1,67 +1,139 @@
 from pdfminer.high_level import extract_text
-import re
-from collections import Counter
 import spacy
-import string
 import json
-nlp = spacy.load("en_core_web_sm")
+import numpy as np
+from pathlib import Path
+from collections import Counter
 
-def extract_pdf_text(file_path: str) -> str:
+nlp = spacy.load("en_core_web_md")  # use medium model for semantic similarity
+
+# Section definitions
+info_categories = {
+    "EDUCATION": {"weight": 2, "headers": ["education", "academic", "degree", "certification", "qualification"]},
+    "EXPERIENCE": {"weight": 3, "headers": ["experience", "employment", "projects", "work history", "responsibilities"]},
+    "SKILLS": {"weight": 4, "headers": ["skills", "technologies", "expertise", "proficiencies", "languages"]},
+    "OTHER": {"weight": 1, "headers": []},
+}
+
+def extract_pdf_text(file_path: str):
     return extract_text(file_path)
 
-def extract_keywords(text):
-    # identify noun chunks with spacy (filter out stop words)
-    # also strip whitespace and convert to lowercase
+
+def preprocess_text(text: str):
+    """Lowercase, remove excessive whitespace."""
+    return " ".join(text.lower().split())
+
+
+def get_hard_skills_list(category: str):
+    """Load curated skills JSON based on job category."""
+    try:
+        skills_path = Path(f"app/assets/skills_{category}_hard.json")
+        with open(skills_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return [s.lower() for s in data]
+    except Exception:
+        return []
+    
+def segment_sections(text: str):
+    """Roughly segment text into sections based on common resume/JD headers"""
+    sections = {"EXPERIENCE": "", "EDUCATION": "", "SKILLS": "", "OTHER": ""}
+    current_section = "OTHER" # by default
+    lines = text.splitlines()
+
+    for line in lines:
+        line = line.lower().strip()
+        found = False
+        for section, info in info_categories.items():
+            if any(h in line for h in info["headers"]):
+                current_section = section
+                found = True
+                break
+        if not found:
+            sections[current_section] += " " + line
+    
+    return sections
+
+
+def extract_keywords(text: str):
+    """Extract meaningful noun chunks and keywords."""
     doc = nlp(text)
-    keywords = set()
-    for chunk in doc.noun_chunks:
-        token = chunk.text.lower().strip()
-        if token not in nlp.Defaults.stop_words: keywords.add(token)
-    return keywords
+    chunks = [chunk.text.strip().lower() for chunk in doc.noun_chunks if len(chunk.text.strip()) > 1]
+    tokens = [token.lemma_.lower() for token in doc if token.pos_ in ("NOUN", "PROPN", "VERB")]
+    return list(set(chunks + tokens))
 
-def match_score(resume_text: str, job_text: str, job_category: str):
-    resume_words = extract_keywords(resume_text)
-    job_words = extract_keywords(job_text)
-    matched = resume_words & job_words
-    missing = job_words - resume_words
-    score = len(matched) / len(job_words) * 100
-    bonus = 0
 
-    # matched & relevant hard/soft will get a higher weightage and featured 1st
-    matched_relevant_hard = set()
-    matched_relevant_soft = set()
+def semantic_match_score(resume_tokens, jd_tokens):
+    """Compute semantic similarity between resume and JD tokens."""
+    if not resume_tokens or not jd_tokens:
+        return 0.0
 
-    # missing & relevant hard/soft will be featured 3rd 
-    missing_relevant_hard = set()
-    missing_relevant_soft = set()
+    resume_doc = nlp(" ".join(resume_tokens))
+    jd_doc = nlp(" ".join(jd_tokens))
+    similarity = resume_doc.similarity(jd_doc)
+    return similarity  # 0–1 range
 
-    hard_skills_path = 'app/assets/skills_fallback.json'
-    soft_skills_path = ''
-    if (job_category != "fallback"): 
-        hard_skills_path = f'app/assets/skills_{job_category}_hard.json'
-        soft_skills_path = f'app/assets/skills_{job_category}_soft.json'
 
-    with open(hard_skills_path,'r') as f:
-        hard_skills = {item.lower() for item in set(json.load(f))}
-        relevant_job_words = job_words & hard_skills # relevant words from jobdesc
-        relevant_resume_words = resume_words & hard_skills # relevant words from resume
-        bonus += len(relevant_job_words & relevant_resume_words) # bonus points for hard skills that are in both resume and job desc
-        matched_relevant_hard = relevant_job_words & relevant_resume_words
-        missing_relevant_hard = relevant_job_words - relevant_resume_words
+def compute_tfidf_like_weighting(tokens):
+    """Approximate TF-IDF weighting using term frequency normalization."""
+    freq = Counter(tokens)
+    total = sum(freq.values())
+    return {word: freq[word] / total for word in freq}
 
-    with open(soft_skills_path, 'r') as f:
-        soft_skills = {item.lower() for item in set(json.load(f))}
-        relevant_job_words = job_words & soft_skills # relevant words from jobdesc
-        relevant_resume_words = resume_words & soft_skills # relevant words from resume
-        if (soft_skills_path != ''): bonus += len(relevant_job_words & relevant_resume_words) # bonus points for soft skills that are in both resume and job desc
-        matched_relevant_soft = relevant_job_words & relevant_resume_words
-        missing_relevant_soft = relevant_job_words - relevant_resume_words
 
-    # matched & not sure will be featured 2nd
-    matched_notsure = matched - (matched_relevant_hard | matched_relevant_soft)
-    # missing & not sure will be featured 4th
-    missing_notsure = missing - (missing_relevant_hard | missing_relevant_soft)
-    score += bonus
-    return (round(score, 2), round(bonus,2),
-            matched_relevant_hard, matched_relevant_soft, matched_notsure,
-            missing_relevant_hard, missing_relevant_soft, missing_notsure)
+def section_weighted_score(resume_sections, job_text, hard_skills):
+    """Compute weighted section score using TF-IDF and semantic similarity."""
+    total_weighted = 0
+    total_weights = 0
+    matched_skills = []
+
+    for section, text in resume_sections.items():
+        if not text.strip():
+            continue
+
+        weight = info_categories.get(section, {"weight": 1})["weight"]
+        tokens = extract_keywords(text)
+        tfidf_weights = compute_tfidf_like_weighting(tokens)
+
+        # Direct matches (hard skills)
+        matched_skills = [skill for skill in hard_skills if skill in text and skill in job_text]
+
+        # Semantic similarity to job description
+        semantic_score = semantic_match_score(tokens, extract_keywords(job_text))
+
+        # Section contribution
+        section_score = weight * (0.5 * semantic_score + 0.5 * min(len(matched_skills) / max(len(hard_skills), 1), 1.0))
+        total_weighted += section_score
+        total_weights += weight
+
+    avg_score = total_weighted / max(total_weights, 1)
+    return avg_score, matched_skills
+
+def get_weighted_score(resume_text: str, job_text: str, category: str):
+    """Compute a weighted score (0–100) for resume vs job description."""
+
+    #resume_text = preprocess_text(resume_text)
+    #job_text = preprocess_text(job_text)
+    jd_tokens = extract_keywords(job_text)
+
+    hard_skills = get_hard_skills_list(category)
+    resume_sections = segment_sections(resume_text)
+    print(resume_sections)
+
+    section_score, matched_skills = section_weighted_score(resume_sections, job_text, hard_skills)
+
+    # Keyword density = unique matched keywords / total JD keywords
+    unique_matches = len(set(matched_skills))
+    density = unique_matches / max(len(hard_skills), 1)
+    density = np.clip(density, 0, 1)
+
+    semantic_score = semantic_match_score(extract_keywords(resume_text), jd_tokens)
+
+    # Blend section and density scores
+    final_score = 0.7 * section_score + 0.2 * density + 0.1 * semantic_score
+
+    # Normalize: enforce floor at 25, cap at 95
+    normalised_score = np.clip(25 + final_score * 75, 0, 100)
+
+    print("section score:", section_score, "density:", density, "semantic_score:", semantic_score, "matched skills:", matched_skills)
+
+    return (round(normalised_score), round(section_score*100,2), round(density*100,2), matched_skills, round(semantic_score * 100,2))

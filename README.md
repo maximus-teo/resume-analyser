@@ -25,7 +25,8 @@ This Python tool helps you find key similarities and differences between your re
     ```
     .\venv\Scripts\Activate.ps1
     ```
-4. Make sure all required packages are installed
+    If needed, execute the command `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` to allow running scripts on your system.
+4. Make sure all required packages are installed. This will take a few minutes to complete.
     ```
     pip install -r requirements.txt
     ```
