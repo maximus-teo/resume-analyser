@@ -16,7 +16,7 @@
 
       <div class="keywords">
         {% if matched_skills|length > 0 %}
-        <h2>Matched Hard Skills</h2>
+        <h2>Matched Skills</h2>
         <ul>
           {% for word in matched_skills %}
           <li>{{ word }}</li>
@@ -26,10 +26,10 @@
       </div>
 
       <div class="keywords-missing">
-        {% if missing_rel_h|length > 0 %}
-        <h2>Missing Keywords (hard skills)</h2>
+        {% if missing_skills|length > 0 %}
+        <h2>Missing Skills</h2>
         <ul>
-          {% for word in missing_rel_h %}
+          {% for word in missing_skills %}
           <li>{{ word }}</li>
           {% endfor %}
         </ul>

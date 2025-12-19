@@ -30,6 +30,10 @@ This Python tool helps you find key similarities and differences between your re
     ```
     pip install -r requirements.txt
     ```
+    You may have to manually install the spaCy package:
+    ```
+    python -m spacy download en_core_web_md
+    ```
 5. Reload Uvicorn ASGI
     ```
     uvicorn app.main:app --reload

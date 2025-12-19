@@ -11,7 +11,7 @@ nlp = spacy.load("en_core_web_md")  # use medium model for semantic similarity
 info_categories = {
     "EDUCATION": {"weight": 2, "headers": ["education", "academic", "degree", "certification", "qualification"]},
     "EXPERIENCE": {"weight": 3, "headers": ["experience", "employment", "projects", "work history", "responsibilities"]},
-    "SKILLS": {"weight": 4, "headers": ["skills", "technologies", "expertise", "proficiencies", "languages"]},
+    "SKILLS": {"weight": 4, "headers": ["skills", "technologies", "expertise", "proficiencies", "languages", "tools"]},
     "OTHER": {"weight": 1, "headers": []},
 }
 
@@ -41,7 +41,9 @@ def segment_sections(text: str):
         line = line.lower().strip()
         found = False
         for section, info in info_categories.items():
-            if any(h in line for h in info["headers"]):
+            # not a cut and dry solution but a line must have <5 words to be a header
+            # if the entire line matches any header in info_cat, start new section
+            if (len(line.split()) < 5) and any(h in line for h in info["headers"]):
                 current_section = section
                 found = True
                 break
@@ -70,40 +72,56 @@ def semantic_match_score(resume_tokens, jd_tokens):
     return similarity  # 0–1 range
 
 def section_weighted_score(resume_sections, job_text, hard_skills):
-    """Compute weighted section score using TF-IDF and semantic similarity."""
     total_weighted = 0
     total_weights = 0
     matched_skills = []
+    jd_skills = []
+    print("***HARD SKILLS***", hard_skills, "\n***JOB TEXT***", job_text)
 
     for section, text in resume_sections.items():
         if not text.strip():
             continue
 
         weight = info_categories.get(section, {"weight": 1})["weight"]
-        tokens = extract_keywords(text)
+        res_tokens = extract_keywords(text)
+        jd_tokens = extract_keywords(job_text)
 
         # Direct matches (hard skills)
-        matched_skills = [skill for skill in hard_skills if skill in text and skill in job_text]
+        jd_skills.extend([skill for skill in hard_skills if skill in job_text.lower()])
+        matched_skills.extend([skill for skill in hard_skills if skill in text.lower() and skill in jd_skills])
+        print("***SECTION:***", section, "\n***TEXT:***", text)
 
         # Semantic similarity to job description
-        semantic_score = semantic_match_score(tokens, extract_keywords(job_text))
+        semantic_score = semantic_match_score(res_tokens, jd_tokens)
 
-        # Section contribution
-        section_score = weight * (0.5 * semantic_score + 0.5 * min(len(matched_skills) / max(len(hard_skills), 1), 1.0))
+        # Section contribution (50% semantics, 50% density of matched skills)
+        # matched skills contribution should be calculated by taking resume skills as a percentage of jd skills.
+        jd_skills = list(set(jd_skills)) # remove dupes from jd and matched skills
+        matched_skills = list(set(matched_skills))
+        section_score = weight * (0.5 * semantic_score + 0.5 * min(len(matched_skills) / max(len(jd_skills), 1), 1.0))
         total_weighted += section_score
         total_weights += weight
 
     avg_score = total_weighted / max(total_weights, 1)
-    return avg_score, matched_skills
+    matched_skills = sorted(list(set(matched_skills))) # sort and remove duplicates
+    jd_skills = sorted(list(set(jd_skills)))
+    print("***MATCHED SKILLS***", matched_skills)
+    print("***JD SKILLS***", jd_skills)
+    missing_skills = sorted(set(jd_skills) - set(matched_skills))
+    print("***MISSING SKILLS***", missing_skills)
+
+    return avg_score, matched_skills, missing_skills
 
 def get_weighted_score(resume_text: str, job_text: str, category: str):
     """Compute a weighted score (0–100) for resume vs job description."""
 
     hard_skills = get_hard_skills_list(category)
     resume_sections = segment_sections(resume_text)
+    print("***RESUME TEXT***",resume_text)
+    print("***RESUME SECTIONS***",resume_sections)
 
     # Section score = skill match between resume and JD
-    section_score, matched_skills = section_weighted_score(resume_sections, job_text, hard_skills)
+    section_score, matched_skills, missing_skills = section_weighted_score(resume_sections, job_text, hard_skills)
 
     # Keyword density = unique matched keywords / total JD keywords
     unique_matches = len(set(matched_skills))
@@ -112,7 +130,6 @@ def get_weighted_score(resume_text: str, job_text: str, category: str):
 
     resume_tokens = extract_keywords(resume_text)
     jd_tokens = extract_keywords(job_text)
-    print("resume tokens:",resume_tokens,"\n\njd_tokens:",jd_tokens)
 
     # Semantic score = use spacy to match noun chunks
     semantic_score = semantic_match_score(resume_tokens, jd_tokens)
@@ -123,6 +140,10 @@ def get_weighted_score(resume_text: str, job_text: str, category: str):
     # Normalize: enforce floor at 25, cap at 95
     normalised_score = np.clip(25 + final_score * 75, 0, 100)
 
-    print("section score:", section_score, "density:", density, "semantic_score:", semantic_score, "matched skills:", matched_skills)
+    print("section score:", section_score,
+          "density:", density,
+          "semantic_score:", semantic_score,
+          "matched skills:", matched_skills,
+          "missing skills:", missing_skills)
 
-    return (round(normalised_score), round(section_score*100,2), round(density*100,2), matched_skills, round(semantic_score * 100,2))
+    return (round(normalised_score), round(section_score*100,2), round(density*100,2), matched_skills, missing_skills, round(semantic_score * 100,2))
