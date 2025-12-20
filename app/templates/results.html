@@ -10,15 +10,27 @@
     <h1>Your Results</h1>
     <div class="results-container">
       <h1>Match Score: {{ score }}%</h1>
+      <p>
+        Over 80%: Strong alignment of keywords, skills and experience with job
+        requirements. Highly likely to be passed through ATS for human review.
+      </p>
+      <p>
+        50-79%: Moderate compatibility between resume and job description. Quite
+        likely to be passed through ATS if there are not many other applicants.
+      </p>
+      <p>
+        Under 50%: Indicates significant gaps between resume and job
+        description. Likely to be automatically filtered out by the ATS.
+      </p>
       <p>Section score: {{ section_score }}%</p>
       <p>Density: {{ density }}%</p>
       <p>Semantic score: {{ semantic_score }}%</p>
 
       <div class="keywords">
-        {% if matched_skills|length > 0 %}
-        <h2>Matched Skills</h2>
+        {% if matched_keywords|length > 0 %}
+        <h2>Matched Keywords</h2>
         <ul>
-          {% for word in matched_skills %}
+          {% for word in matched_keywords %}
           <li>{{ word }}</li>
           {% endfor %}
         </ul>
@@ -26,10 +38,10 @@
       </div>
 
       <div class="keywords-missing">
-        {% if missing_skills|length > 0 %}
-        <h2>Missing Skills</h2>
+        {% if missing_keywords|length > 0 %}
+        <h2>Missing Keywords</h2>
         <ul>
-          {% for word in missing_skills %}
+          {% for word in missing_keywords %}
           <li>{{ word }}</li>
           {% endfor %}
         </ul>

@@ -42,7 +42,7 @@ async def analyse(
     else:
         job_text = jobdesc_textarea
 
-    (score, section_score, density, matched_skills, missing_skills, semantic_score) = get_weighted_score(resume_text, job_text, jobdesc_category)
+    (score, section_score, density, matched_keywords, missing_keywords, semantic_score) = get_weighted_score(resume_text, job_text, jobdesc_category)
     print(f"Job category: {jobdesc_category}, Score: {score}")
 
     return templates.TemplateResponse("results.html", {
@@ -50,7 +50,7 @@ async def analyse(
         "score": score,
         "section_score": section_score,
         "density": density,
-        "matched_skills": matched_skills,
-        "missing_skills": missing_skills,
+        "matched_keywords": matched_keywords,
+        "missing_keywords": missing_keywords,
         "semantic_score": semantic_score
     })
