@@ -10,6 +10,10 @@ nlp = spacy.load("en_core_web_md")  # use medium model for semantic similarity
 # how to determine mandatory requirements (must haves) for qualifications
 # e.g. years of experience, degree equivalent, etc.
 # more details on matched or missing
+# show what sections contribute to the score
+
+# database: SQLite to store past analyses?
+# user accounts: auth with JWT if time allows
 
 # Section definitions
 info_categories = {
@@ -45,7 +49,7 @@ def segment_sections(text: str):
         line = line.lower().strip()
         found = False
         for section, info in info_categories.items():
-            # not a cut and dry solution but a line must have <5 words to be a header
+            # not a cut and dried solution but a line must have <5 words to be a header
             # if the entire line matches any header in info_cat, start new section
             if (len(line.split()) < 5) and any(h in line for h in info["headers"]):
                 current_section = section
