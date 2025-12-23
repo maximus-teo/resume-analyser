@@ -147,11 +147,16 @@
         const resumetxt = document.getElementById("text-resume");
         const jobpdf = document.getElementById("pdf-jobdesc");
         const jobtxt = document.getElementById("text-jobdesc");
+        const jobcat = document.getElementById("jobdesc-category");
         if (
           (resumepdf.files.length === 0 && resumetxt.value === "") ||
           (jobpdf.files.length === 0 && jobtxt.value === "")
         ) {
           alert("Upload both resume and job description with PDF or raw text.");
+          return false;
+        }
+        else if (jobcat.value === "") {
+          alert("Please select a job category.");
           return false;
         }
         return true;

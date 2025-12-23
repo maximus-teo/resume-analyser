@@ -47,6 +47,7 @@ async def analyse(
 
     return templates.TemplateResponse("results.html", {
         "request": request,
+        "job_category": jobdesc_category,
         "score": score,
         "section_score": section_score,
         "density": density,
