@@ -1,45 +1,45 @@
 # Resume Analyser
 
-This Python tool helps you find key similarities and differences between your resume and a job listing. Simply upload your resume and the job description (certain instructions to follow) and receive a match score out of 100%. 
+This tool functions as an ATS resume checker, to help you find key similarities and differences between your resume and a job listing. Simply upload your resume and the job description (certain instructions to follow) and receive a match score out of 100%.
 
-## What is an ATS?
+## The Applicant Tracking System (ATS)
 
 Companies often use an ATS to automatically screen, sort and rank potential candidates by scanning all resumes for relevant keywords and required qualifications for an advertised position, before deeming them appropriate for human review. To boost your chances of passing through the ATS, you can ensure that your resume uses clean formatting, standard headings and includes keywords in verbatim from the job description, so that it is easily readable by the ATS to reach a hiring manager. The higher the match score is out of 100, the more likely the resume will pass through the ATS.
 
-# Tips for best results
+## Tips for best results
 
 - Upload your resume as a PDF, or raw text is accepted
 - Upload only the Requirements/Qualifications/Skills section of the job listing
 - Do not upload any other info such as company history or benefits/perks
 - Select the job category that best fits the job listing
 
-# Note
+## Note
 
 - This resume analyser searches for keywords and phrases, not entire sentences
 - Match score is based on number of overlaps between the resume and job listing
 - Bonus points are given if select keywords are found in the resume, job listing and the curated dictionary
 
-# How it works
+## How it works
 
-## 1. Extract
+### 1. Extract
 Retrieve all raw text from the resume and job description (JD).
 
-## 2. Build 'matched' dictionary
+### 2. Build 'matched' dictionary
 Cross-reference all database keywords with both resume and JD, adding all common keywords to a 'matched' keyword dictionary.
 
-## 3. Build 'jd' dictionary
+### 3. Build 'jd' dictionary
 Cross-reference all database keywords with JD itself, adding all common keywords to a 'jd' keyword dictionary.
 
-## 4. Find extra keywords
+### 4. Find extra keywords
 Scan the JD for important technical terms - these are unique keywords that are not found in our existing database - and add them to the 'jd' dictionary.
 
-## 5. Build 'missing' dictionary
+### 5. Build 'missing' dictionary
 Compare 'matched' and 'jd' dictionaries, filtering out keywords to add to a 'missing' dictionary - these are keywords only found in the JD but not the resume.
 
-## 6. Calculate match score
+### 6. Calculate match score
 The match score has a weight distribution of 80% keywords, 20% semantics (using NLP by spaCy). The keywords scoring algorithm is done by partitioning the resume into four sections (skills, experience, education and others) with descending weights respectively. Each matched keyword in the resume and JD receives its respective weight based on the section it is found in, and the total weights are tallied up. The final percentage is calculated by taking the total resume weight divided by the total JD weight.
 
-# How to use
+## How to use
 
 1. Clone this repository
    ```
