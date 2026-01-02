@@ -2,6 +2,7 @@ from pdfminer.high_level import extract_text
 import spacy
 import json
 import numpy as np
+import re
 from pathlib import Path
 from collections import Counter
 
@@ -38,12 +39,12 @@ def preprocess_text(text: str):
     return "".join(text.lower())
 
 def get_keywords_list(category: str):
-    """Load curated skills JSON based on job category. Makes all strings lowercase."""
+    """Load curated skills JSON based on job category."""
     try:
         skills_path = Path(f"app/assets/keywords_{category}.json")
         with open(skills_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        return [s.lower() for s in data]
+        return [s.lower() for s in data] # LOWERCASE OR NOT?
     except Exception:
         return []
     
@@ -90,109 +91,144 @@ def semantic_match_score(resume_tokens, jd_tokens):
 def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keywords are already lowercase
     resume_weight = 0
     jd_weight = 0
+    section_scores = [0.0, 0.0, 0.0, 0.0] # others (1), education (2), experience (3), skills (4)
+
     matched_keywords = {} # dictionary: keyword, weight
     jd_keywords = {} # dictionary: keyword, weight
-    missing_keywords = {} # dictionary instead of array
+    missing_keywords = {} # dictionary: keyword, context
 
-    # categorise JD into the same four categories to calculate its total score.
-    # not accurate to categorise JD keywords based on the fact that they share the same line as a header keyword.
-    #for line in job_text.lower().splitlines():
-    #    for cat_name, cat_data in info_categories.items():
-    #        wgt = cat_data["weight"]
-    #        for header in cat_data["headers"]:
-    #            if header in line: 
-    #                for kw in keywords:
-    #                    if kw in line.lower():
-    #                        jd_keywords.update({kw: wgt})
-    #                        jd_weight += wgt
-    
-    # array of noun chunks in jd
-    #jd_chunks = [chunk.text.strip() for chunk in nlp(job_text).noun_chunks if len(chunk.text.strip()) > 1]
-    #jd_keywords.extend([kw for kw in keywords if kw in job_text.lower()])
-    #print("***HARD SKILLS***", keywords, "\n***JOB TEXT***", job_text)
+    skills_wgt = info_categories.get("SKILLS", {"weight": 4})["weight"] # fallback weight of 4
+    extra_keywords = []
 
-    # format for resume sections is "HEADER": "TEXT"
-    for section, text in resume_sections.items():
-        if not text.strip():
+    # always prioritise resume weight classification > fallback weight of 4
+
+    # parsing words - classify as extra keywords not found in keyword database
+    for line in job_text.splitlines():
+        for word in line.split():
+            if sum(1 for char in word if char.isupper()) >= 2 and word not in keywords: # 2 or more uppercase e.g. 'EtherCAT', 'RS-485'
+                extra_keywords.append(word.lower())
+    print("extra_keywords:",extra_keywords)
+
+    # add all extra_keywords to jd_keywords
+    for kw in extra_keywords:
+        jd_keywords.update({kw: skills_wgt})
+
+    # add relevant keywords from database to jd_keywords
+    for kw in keywords:
+        if kw in job_text.lower():
+            jd_keywords.update({kw: skills_wgt})
+
+    # build matched keywords dictionary
+    # add resume weighted keywords to matched_keywords
+    for section, res_text in resume_sections.items():
+        if not res_text.strip():
             continue
 
         weight = info_categories.get(section, {"weight": 1})["weight"] # fallback weight of 1
 
-        # direct/exact matches
-        num_matches = 0
+        # cross reference database keywords with resume text and job text
         for kw in keywords:
-            if kw in text.lower() and kw in job_text.lower() and kw not in matched_keywords:
+            if kw.lower() in res_text.lower() and kw.lower() in job_text.lower() and kw not in matched_keywords: # ensure weight is not overridden
                 matched_keywords.update({kw: weight})
-                num_matches += 1
-        #matched_keywords.extend([kw for kw in keywords if kw in text.lower() and kw in job_text.lower()])
-        #matched_keywords = list(set(matched_keywords))
-        #num_matches = len(matched_keywords) - num_matches
+                jd_keywords.update({kw: weight}) # ensure jd_keywords has accurate weights
+        if extra_keywords:
+            for kw in extra_keywords:
+                if kw in res_text.lower() and kw not in matched_keywords:
+                    matched_keywords.update({kw: skills_wgt})
 
-        #jd_keywords.extend([kw for kw in keywords if kw in job_text.lower()])
-
-        # for words in jd but not in matched, add to missing, then pair with word chunks surrounding that missing keyword
-        #print("***SECTION:***", section, "\n***TEXT:***", text)
-
-        # Section contribution (density of matched skills with weights attached)
-        # matched skills contribution should be calculated by taking resume skills as a percentage of jd skills.
-        # keyword_score = weight * (min(len(matched_keywords) / max(len(jd_keywords), 1), 1.0))
-
-        resume_weight += weight * num_matches
-
-    # then add missing keywords to jd_keywords and classify them by adding skills weight to them (since most likely to be a skill) - not a cut and dried solution
-    skills_wgt = info_categories.get("SKILLS", {"weight": 4})["weight"] # fallback weight of 4
-    for kw, wgt in matched_keywords.items():
-        if kw not in jd_keywords:
-            jd_keywords.update({kw: wgt})
-
-    for kw in keywords:
-        if kw not in jd_keywords and kw in job_text.lower():
-            jd_keywords.update({kw: skills_wgt})
-
-    # split job text into lines
-    # for each line, if a missing keyword is found in that line, add context with the keyword
-    # do we want to add a criteria to recognise any string with 2 or more uppercase characters as an important keyword? - indicate as 'might be important'
+    # build missing keywords dictionary
+    # extract context for each missing keyword
+    jobtext = []
     for line in job_text.splitlines():
-        for kw in jd_keywords:
-            if kw not in matched_keywords and kw in line:
-                words = line.split()
-                for word in words:
-                    if kw in word:
-                        i = words.index(word)
-                        context_before = ""
-                        context_after = ""
-                        if i >= 3: context_before = " ".join([words[i-3], words[i-2], words[i-1]])
-                        elif i >= 2: context_before = " ".join([words[i-2], words[i-1]])
-                        elif i >= 1: context_before = words[i-1]
-                        if i < len(words) - 3: context_after = " ".join([words[i+1], words[i+2], words[i+3]])
-                        elif i < len(words) - 2: context_after = " ".join([words[i+1], words[i+2]])
-                        elif i < len(words) - 1: context_after = words[i+1]
-                        missing_keywords.update({kw : [context_before, context_after]}) # keyword, context
+        jobtext.extend([word for word in line.split()])
+    print("jobtext:",jobtext)
 
     for kw, wgt in jd_keywords.items():
+        if kw not in matched_keywords:
+            context_before = ""
+            context_after = ""
+            missing_keywords.update({re.sub(r'[^a-zA-Z0-9 ]', '',kw) : [context_before, context_after]})
+            if len(kw.split()) == 1:
+                for word in jobtext:
+                    i = jobtext.index(word)
+                    if i >= 3: context_before = " ".join([jobtext[i-3], jobtext[i-2], jobtext[i-1]])
+                    elif i >= 2: context_before = " ".join([jobtext[i-2], jobtext[i-1]])
+                    elif i >= 1: context_before = jobtext[i-1]
+                    if i < len(jobtext) - 3: context_after = " ".join([jobtext[i+1], jobtext[i+2], jobtext[i+3]])
+                    elif i < len(jobtext) - 2: context_after = " ".join([jobtext[i+1], jobtext[i+2]])
+                    elif i < len(jobtext) - 1: context_after = jobtext[i+1]
+
+                    if kw not in matched_keywords and kw in word.lower():
+                        missing_keywords.update({re.sub(r'[^a-zA-Z0-9 ]', '',kw) : [context_before, context_after]})
+            elif len(kw.split()) > 1:
+                # find location of kw in jobtext array
+                print("multi word kw detected:", kw)
+                i = -1
+                for word in jobtext:
+                    i = jobtext.index(word)
+                    if i < len(jobtext) - (len(kw.split())-1):
+                        match = False
+                        for k in range(0,len(kw.split())): # e.g. if kw has 2 words, k iterates thru 0 and 1.
+                            match = re.sub(r'[^a-zA-Z0-9 ]', '', jobtext[i+k]) == kw.split()[k]
+                        if match:
+                            k = i+1
+                            while k < len(jobtext):
+                                concat = re.sub(r'[^a-zA-Z0-9 ]', '', " ".join([word, jobtext[k]]))
+                                print("concat:",concat)
+                                if concat == kw and i >= 0: 
+                                    print("kw passed i >= 0:",kw)
+                                    if i >= 3: context_before = " ".join([jobtext[i-3], jobtext[i-2], jobtext[i-1]])
+                                    elif i >= 2: context_before = " ".join([jobtext[i-2], jobtext[i-1]])
+                                    elif i >= 1: context_before = jobtext[i-1]
+                                    if i < len(jobtext) - 3: context_after = " ".join([jobtext[i+len(kw.split())], jobtext[i+len(kw.split())+1], jobtext[i+len(kw.split())+2]])
+                                    elif i < len(jobtext) - 2: context_after = " ".join([jobtext[i+len(kw.split())], jobtext[i+len(kw.split())+1]])
+                                    elif i < len(jobtext) - 1: context_after = jobtext[i+len(kw.split())]
+                                    
+                                    missing_keywords.update({re.sub(r'[^a-zA-Z0-9 ]', '',kw) : [context_before, context_after]})
+                                    break
+                                elif concat not in kw:
+                                    i = -1
+                                    break
+                                k = k + 1
+            
+    section_scores_jd = [0.0, 0.0, 0.0, 0.0]
+    section_scores_res = [0.0, 0.0, 0.0, 0.0]
+
+    for kw, wgt in jd_keywords.items():
+        if wgt > 0: section_scores_jd[wgt-1] += wgt
         jd_weight += wgt
+    print(section_scores_jd)
+    for kw, wgt in matched_keywords.items():
+        if wgt > 0: section_scores_res[wgt-1] += wgt
+        resume_weight += wgt
+    print(section_scores_res)
+
+    for k in range(0,len(section_scores)):
+        section_scores[k] = round(section_scores_res[k] / max(section_scores_jd[k],1) * 100, 2)
 
     avg_score = resume_weight / max(jd_weight, 1)
     density = len(matched_keywords) / max(len(jd_keywords), 1)
-    #matched_keywords = sorted(list(set(matched_keywords))) # sort and remove duplicates
-    print("jd_keywords:",jd_keywords) # how to sort keys?
-    print("matched_keywords:", matched_keywords)
-    print("keyword score:",resume_weight,"/",jd_weight)
-    #jd_keywords = sorted(list(set(jd_keywords)))
-    #missing_keywords = sorted(set(jd_keywords) - set(matched_keywords))
 
-    return avg_score, density, matched_keywords, missing_keywords
+    jd_keywords = {key: val for key, val in sorted(jd_keywords.items())}
+    matched_keywords = {key: val for key, val in sorted(matched_keywords.items())}
+    print("jd_keywords:",jd_keywords)
+    print("matched_keywords:", matched_keywords)
+    print("missing_keywords:", missing_keywords)
+    print("keyword score:",resume_weight,"/",jd_weight)
+    print(section_scores)
+
+    return avg_score, section_scores, density, matched_keywords, missing_keywords
 
 def get_weighted_score(resume_text: str, job_text: str, category: str):
 
     keywords = get_keywords_list(category)
     resume_sections = segment_sections(resume_text)
 
-    # keyword score = skill match between resume and JD
+    # keyword score = WEIGHTED keyword match between resume and JD
     # takes into account four main sections: experience (wgt: 3), education (wgt: 2), skills (wgt: 4), others (wgt: 1)
     # for each section: compare the proportion of matched keywords between resume and JD, then add to the score with weight assigned
     # density returned refers to the total keywords matched in proportion to total JD keywords (for indicative purposes)
-    keyword_score, density, matched_keywords, missing_keywords = section_weighted_score(resume_sections, job_text, keywords)
+    keyword_score, section_scores, density, matched_keywords, missing_keywords = section_weighted_score(resume_sections, job_text, keywords)
 
     # semantic score = use spacy to match noun chunks
     # compare similarities in basic semantics (nouns, verbs, adjs)
@@ -206,14 +242,9 @@ def get_weighted_score(resume_text: str, job_text: str, category: str):
     # normalize: floor at 25, cap at 95 (don't know if this needed)
     normalised_score = np.clip(25 + final_score * 75, 0, 100)
 
-    #print("keyword score:", keyword_score,
-    #      "density:", density,
-    #      "semantic_score:", semantic_score,
-    #      "matched keywords:", matched_keywords,
-    #      "missing keywords:", missing_keywords)
-
     return (round(normalised_score),
             round(keyword_score*100,2),
+            section_scores,
             round(density*100,2),
             matched_keywords,
             missing_keywords,

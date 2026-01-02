@@ -24,7 +24,13 @@
         description. Likely to be automatically filtered out by the ATS.
       </p>
       <p><strong>Keyword score:</strong> {{ keyword_score }}%</p>
-      <p><strong>Density:</strong> {{ density }}%</p>
+      <ul>
+        <li><strong>Skills:</strong> {{ section_scores[3] }}%</li>
+        <li><strong>Experience:</strong> {{ section_scores[2] }}%</li>
+        <li><strong>Education:</strong> {{ section_scores[1] }}%</li>
+        <li><strong>Others:</strong> {{ section_scores[0] }}%</li>
+      </ul>
+      <p><strong>Keyword density:</strong> {{ density }}%</p>
       <p><strong>Semantic score:</strong> {{ semantic_score }}%</p>
 
       <div class="keywords">
@@ -40,7 +46,7 @@
 
       <div class="keywords-missing">
         {% if missing_keywords|length > 0 %}
-        <h2>Missing Keywords</h2>
+        <h2>Try adding these keywords:</h2>
         <ul>
           {% for word, context in missing_keywords.items() %}
           <li>{{ word }}</li>
