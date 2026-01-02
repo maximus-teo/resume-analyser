@@ -197,11 +197,9 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
     for kw, wgt in jd_keywords.items():
         if wgt > 0: section_scores_jd[wgt-1] += wgt
         jd_weight += wgt
-    print(section_scores_jd)
     for kw, wgt in matched_keywords.items():
         if wgt > 0: section_scores_res[wgt-1] += wgt
         resume_weight += wgt
-    print(section_scores_res)
 
     for k in range(0,len(section_scores)):
         section_scores[k] = round(section_scores_res[k] / max(section_scores_jd[k],1) * 100, 2)
