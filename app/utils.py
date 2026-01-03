@@ -55,18 +55,18 @@ def segment_sections(text: str):
     lines = text.splitlines()
 
     for line in lines:
-        line = line.lower().strip()
+        line = line.strip()
         found = False
         for section, info in info_categories.items():
             # not a cut and dried solution but a line must have <5 words to be a header
             # if the entire line matches any header in info_cat, start new section
-            if (len(line.split()) < 5) and any(h in line for h in info["headers"]):
+            if (len(line.split()) < 5) and any(h in line.lower() for h in info["headers"]):
                 current_section = section
                 found = True
                 break
         if not found:
-            sections[current_section] += " " + line
-    
+            if sections[current_section] == "": sections[current_section] = line
+            else: sections[current_section] += "%nl%" + line
     return sections
 
 
@@ -115,7 +115,9 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
 
     # add relevant keywords from database to jd_keywords
     for kw in keywords:
-        if kw in job_text.lower():
+        pattern = r"\b" + kw.lower() + r"\b"
+        if re.search(pattern, job_text.lower()):
+        #if kw in job_text.lower():
             jd_keywords.update({kw: skills_wgt})
 
     # build matched keywords dictionary
@@ -128,12 +130,16 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
 
         # cross reference database keywords with resume text and job text
         for kw in keywords:
-            if kw.lower() in res_text.lower() and kw.lower() in job_text.lower() and kw not in matched_keywords: # ensure weight is not overridden
+            pattern = r"\b" + kw.lower() + r"\b" # add boundaries to find whole word
+            if re.search(pattern, res_text.lower()) and re.search(pattern, job_text.lower()) and kw not in matched_keywords: # ensure weight is not overridden
+            #if kw.lower() in res_text.lower() and kw.lower() in job_text.lower() and kw not in matched_keywords: # ensure weight is not overridden
                 matched_keywords.update({kw: weight})
                 jd_keywords.update({kw: weight}) # ensure jd_keywords has accurate weights
         if extra_keywords:
             for kw in extra_keywords:
-                if kw in res_text.lower() and kw not in matched_keywords:
+                pattern = r"\b" + kw.lower() + r"\b"
+                if re.search(pattern, res_text.lower()) and kw not in matched_keywords:
+                #if kw in res_text.lower() and kw not in matched_keywords:
                     matched_keywords.update({kw: skills_wgt})
 
     # build missing keywords dictionary
@@ -147,7 +153,7 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
         if kw not in matched_keywords:
             context_before = ""
             context_after = ""
-            missing_keywords.update({re.sub(r'[^a-zA-Z0-9 ]', '',kw) : [context_before, context_after]})
+            missing_keywords.update({kw : [context_before, context_after]})
             if len(kw.split()) == 1:
                 for word in jobtext:
                     i = jobtext.index(word)
@@ -158,8 +164,9 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
                     elif i < len(jobtext) - 2: context_after = " ".join([jobtext[i+1], jobtext[i+2]])
                     elif i < len(jobtext) - 1: context_after = jobtext[i+1]
 
-                    if kw not in matched_keywords and kw in word.lower():
-                        missing_keywords.update({re.sub(r'[^a-zA-Z0-9 ]', '',kw) : [context_before, context_after]})
+                    pattern = r"\b" + kw.lower() + r"\b"
+                    if kw not in matched_keywords and re.search(pattern, word.lower()):
+                        missing_keywords.update({kw : [context_before, context_after]})
             elif len(kw.split()) > 1:
                 # find location of kw in jobtext array
                 print("multi word kw detected:", kw)
@@ -184,7 +191,7 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
                                     elif i < len(jobtext) - 2: context_after = " ".join([jobtext[i+len(kw.split())], jobtext[i+len(kw.split())+1]])
                                     elif i < len(jobtext) - 1: context_after = jobtext[i+len(kw.split())]
                                     
-                                    missing_keywords.update({re.sub(r'[^a-zA-Z0-9 ]', '',kw) : [context_before, context_after]})
+                                    missing_keywords.update({kw : [context_before, context_after]})
                                     break
                                 elif concat not in kw:
                                     i = -1
@@ -239,9 +246,15 @@ def get_weighted_score(resume_text: str, job_text: str, category: str):
 
     # normalize: floor at 25, cap at 95 (don't know if this needed)
     normalised_score = np.clip(25 + final_score * 75, 0, 100)
+    
+    resume_sections = {
+        section: text.split("%nl%")
+        for section, text in resume_sections.items()
+        }
 
     return (round(normalised_score),
             round(keyword_score*100,2),
+            resume_sections,
             section_scores,
             round(density*100,2),
             matched_keywords,

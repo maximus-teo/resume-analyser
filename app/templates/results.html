@@ -4,59 +4,75 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Resume Analyser - Results</title>
-    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
   </head>
-  <body>
-    <h1>Your Results</h1>
-    <div class="results-container">
-      <h1>Match Score: {{ score }}%</h1>
-      <h3>Category: {{ job_category }}</h3>
-      <p>
-        Over 80%: Strong alignment of keywords, skills and experience with job
-        requirements. Highly likely to be passed through ATS for human review.
-      </p>
-      <p>
-        50-79%: Moderate compatibility between resume and job description. Quite
-        likely to be passed through ATS if there are not many other applicants.
-      </p>
-      <p>
-        Under 50%: Indicates significant gaps between resume and job
-        description. Likely to be automatically filtered out by the ATS.
-      </p>
-      <p><strong>Keyword score:</strong> {{ keyword_score }}%</p>
-      <ul>
-        <li><strong>Skills:</strong> {{ section_scores[3] }}%</li>
-        <li><strong>Experience:</strong> {{ section_scores[2] }}%</li>
-        <li><strong>Education:</strong> {{ section_scores[1] }}%</li>
-        <li><strong>Others:</strong> {{ section_scores[0] }}%</li>
-      </ul>
-      <p><strong>Keyword density:</strong> {{ density }}%</p>
-      <p><strong>Semantic score:</strong> {{ semantic_score }}%</p>
-
-      <div class="keywords">
-        {% if matched_keywords|length > 0 %}
-        <h2>Matched Keywords</h2>
-        <ul>
-          {% for word in matched_keywords %}
-          <li>{{ word }}</li>
+  <body style="padding: 0; margin: 0;">
+    <h1 style="padding: 0; margin: 20px 0 0 0;">Match Score: {{ score }}%</h1>
+    <button class="back-button"><a href="/">Analyse another resume</a></button>
+    <div class="main-container">
+      <div style="display: flex; flex-direction: column; gap:20px; width: 50vw;">
+        <div class="resume-container">
+          <h2>Resume</h2>
+          {% for section, text in resume_sections.items() %}
+          <h3>{{ section }}</h3>
+            {% for line in text %}
+            <p>{{ line }}</p>
+            {% endfor %}
           {% endfor %}
-        </ul>
-        {% endif %}
+        </div>
+        <div class="resume-container">
+          <h2>Job Description</h2>
+          {{ job_text }}
+        </div>
       </div>
-
-      <div class="keywords-missing">
-        {% if missing_keywords|length > 0 %}
-        <h2>Try adding these keywords:</h2>
+      <div class="results-container">
+        <h2>Results</h2>
+        <h3>Category: {{ job_category }}</h3>
+        <p>
+          Over 80%: Strong alignment of keywords, skills and experience with job
+          requirements. Highly likely to be passed through ATS for human review.
+        </p>
+        <p>
+          50-79%: Moderate compatibility between resume and job description. Quite
+          likely to be passed through ATS if there are not many other applicants.
+        </p>
+        <p>
+          Under 50%: Indicates significant gaps between resume and job
+          description. Likely to be automatically filtered out by the ATS.
+        </p>
+        <p><strong>Keyword score:</strong> {{ keyword_score }}%</p>
         <ul>
-          {% for word, context in missing_keywords.items() %}
-          <li>{{ word }}</li>
-          <p><em>...{{ [context[0], "<b>" + word + "</b>", context[1]] | join(" ") | safe }}...</em></p>
-          {% endfor %}
+          <li><strong>Skills:</strong> {{ section_scores[3] }}%</li>
+          <li><strong>Experience:</strong> {{ section_scores[2] }}%</li>
+          <li><strong>Education:</strong> {{ section_scores[1] }}%</li>
+          <li><strong>Others:</strong> {{ section_scores[0] }}%</li>
         </ul>
-        {% endif %}
-      </div>
+        <p><strong>Keyword density:</strong> {{ density }}%</p>
+        <p><strong>Semantic score:</strong> {{ semantic_score }}%</p>
 
-      <a href="/" class="back-link">Analyse another resume</a>
+        <div class="keywords">
+          {% if matched_keywords|length > 0 %}
+          <h3>Matched Keywords</h3>
+          <ul>
+            {% for word in matched_keywords %}
+            <li>{{ word }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+
+        <div class="keywords-missing">
+          {% if missing_keywords|length > 0 %}
+          <h3>Try adding these keywords:</h3>
+          <ul>
+            {% for word, context in missing_keywords.items() %}
+            <li>{{ word }}</li>
+            <p><em>...{{ [context[0], "<b>" + word + "</b>", context[1]] | join(" ") | safe }}...</em></p>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
     </div>
   </body>
 </html>

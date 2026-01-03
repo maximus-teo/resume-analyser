@@ -66,4 +66,4 @@ The match score has a weight distribution of 80% keywords, 20% semantics (using 
    ```
    uvicorn app.main:app --reload
    ```
-6. Go to `https://127.0.0.1:8000/` to test
+6. Go to `https://localhost:8000/` to test
