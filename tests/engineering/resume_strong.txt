@@ -1,0 +1,73 @@
+EDUCATION
+
+Bachelor of Science in Computer Science
+University of Ottawa, Ottawa, ON
+Expected Graduation: 2026
+
+Relevant Coursework:
+- Embedded Systems
+- Robotics and Automation
+- Real-Time Systems
+- Control Systems
+- Computer Vision
+- Data Structures and Algorithms
+
+TECHNICAL SKILLS
+
+Programming Languages:
+C++, C#, Python
+
+Embedded & Automation:
+Embedded Linux, Microcontrollers (STM32, Arduino), Motion Control Systems, Industrial Automation
+
+Communication Protocols:
+RS-485, UART, SPI, I2C, EtherCAT
+
+Robotics & Vision:
+Machine Vision, OpenCV, Camera Calibration, Image Processing
+
+Tools & Environments:
+Visual Studio, VS Code, GDB, Oscilloscope, Logic Analyzer, Git
+
+Operating Systems:
+Linux, Windows
+
+PROJECT EXPERIENCE
+
+Autonomous Mobile Robot Platform
+Embedded Systems & Robotics Project
+- Designed and implemented control software in C++ and Python for an autonomous mobile robot.
+- Integrated motion control algorithms for motor drivers using encoder feedback.
+- Implemented RS-485 communication between motor controllers and the main embedded processor.
+- Used OpenCV for basic machine vision tasks including object detection and line following.
+- Performed hands-on testing, debugging, and system validation in a lab environment.
+
+EtherCAT-Based Motion Control System
+Automation & Control Project
+- Developed a prototype EtherCAT system for synchronized multi-axis motor control.
+- Configured EtherCAT slaves and implemented real-time data exchange for motion commands.
+- Analyzed timing constraints and optimized communication performance.
+- Collaborated with a team to troubleshoot system-level issues and validate automation workflows.
+
+Embedded Device Firmware Development
+Personal / Academic Project
+- Developed firmware in C and C++ for embedded devices using microcontrollers.
+- Implemented communication protocols including UART and RS-485.
+- Used debugging tools such as GDB, serial monitors, and logic analyzers.
+- Documented system behavior and testing results to support iterative development.
+
+EXPERIENCE
+
+Engineering / Technical Intern
+Company Name, Toronto, ON
+May 2024 – Aug 2024
+- Assisted in R&D and automation projects involving embedded hardware and software integration.
+- Wrote and tested Python and C++ scripts for system diagnostics and automation tasks.
+- Supported hands-on testing and debugging of control systems and sensors.
+- Worked collaboratively in a multidisciplinary engineering team.
+
+ADDITIONAL INFORMATION
+
+- Strong interest in robotics, automation, and hands-on R&D
+- Comfortable working in lab environments and with physical hardware
+- Enjoy rapid prototyping, debugging, and iterative problem-solving

@@ -15,12 +15,18 @@
           <h2>Resume</h2>
           {% for section, text in resume_sections.items() %}
           <h3>{{ section }}</h3>
-            {% for line in text %}
-            <p>{{ line }}</p>
-            {% endfor %}
+            {% if text %}
+              {% for line in text %}
+                {% if line %}
+                <p>{{ line }}</p>
+                {% else %}
+                <p>None</p>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
           {% endfor %}
         </div>
-        <div class="resume-container">
+        <div class="jd-container">
           <h2>Job Description</h2>
           {{ job_text }}
         </div>
@@ -29,15 +35,15 @@
         <h2>Results</h2>
         <h3>Category: {{ job_category }}</h3>
         <p>
-          Over 80%: Strong alignment of keywords, skills and experience with job
+          <strong>Over 80%:</strong> Strong alignment of keywords, skills and experience with job
           requirements. Highly likely to be passed through ATS for human review.
         </p>
         <p>
-          50-79%: Moderate compatibility between resume and job description. Quite
+          <strong>50-79%:</strong> Moderate compatibility between resume and job description. Quite
           likely to be passed through ATS if there are not many other applicants.
         </p>
         <p>
-          Under 50%: Indicates significant gaps between resume and job
+          <strong>Under 50%:</strong> Indicates significant gaps between resume and job
           description. Likely to be automatically filtered out by the ATS.
         </p>
         <p><strong>Keyword score:</strong> {{ keyword_score }}%</p>

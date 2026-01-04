@@ -36,7 +36,7 @@ def extract_pdf_text(file_path: str):
     return extract_text(file_path)
 
 def preprocess_text(text: str):
-    return "".join(text.lower())
+    return text.lower()
 
 def get_keywords_list(category: str):
     """Load curated skills JSON based on job category."""
@@ -88,6 +88,31 @@ def semantic_match_score(resume_tokens, jd_tokens):
     similarity = resume_doc.similarity(jd_doc)
     return similarity  # 0–1 range
 
+def tokenize(text: str):
+    """Lowercase, whitespace tokenization with punctuation stripped."""
+    return [
+        re.sub(r"[^a-zA-Z0-9]", "", t)
+        for t in text.lower().split()
+        if re.sub(r"[^a-zA-Z0-9]", "", t)
+    ]
+
+def find_keyword_occurrences(tokens, keyword_tokens):
+    """Yield start indices where keyword_tokens appear in tokens."""
+    k = len(keyword_tokens)
+    for i in range(len(tokens) - k + 1):
+        if tokens[i:i+k] == keyword_tokens:
+            yield i
+
+def extract_context(tokens, start_idx, kw_len, window=3):
+    """Returns context up to 3 words before and after a given token/keyword."""
+    before_start = max(0, start_idx - window)
+    after_end = min(len(tokens), start_idx + kw_len + window)
+
+    before = " ".join(tokens[before_start:start_idx])
+    after = " ".join(tokens[start_idx + kw_len:after_end])
+
+    return before, after
+
 def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keywords are already lowercase
     resume_weight = 0
     jd_weight = 0
@@ -115,7 +140,7 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
 
     # add relevant keywords from database to jd_keywords
     for kw in keywords:
-        pattern = r"\b" + kw.lower() + r"\b"
+        pattern = r"\b" + re.escape(kw.lower()) + r"\b"
         if re.search(pattern, job_text.lower()):
         #if kw in job_text.lower():
             jd_keywords.update({kw: skills_wgt})
@@ -130,74 +155,37 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
 
         # cross reference database keywords with resume text and job text
         for kw in keywords:
-            pattern = r"\b" + kw.lower() + r"\b" # add boundaries to find whole word
+            pattern = r"\b" + re.escape(kw.lower()) + r"\b" # add boundaries to find whole word
             if re.search(pattern, res_text.lower()) and re.search(pattern, job_text.lower()) and kw not in matched_keywords: # ensure weight is not overridden
             #if kw.lower() in res_text.lower() and kw.lower() in job_text.lower() and kw not in matched_keywords: # ensure weight is not overridden
                 matched_keywords.update({kw: weight})
                 jd_keywords.update({kw: weight}) # ensure jd_keywords has accurate weights
         if extra_keywords:
             for kw in extra_keywords:
-                pattern = r"\b" + kw.lower() + r"\b"
+                pattern = r"\b" + re.escape(kw.lower()) + r"\b"
                 if re.search(pattern, res_text.lower()) and kw not in matched_keywords:
                 #if kw in res_text.lower() and kw not in matched_keywords:
                     matched_keywords.update({kw: skills_wgt})
 
-    # build missing keywords dictionary
-    # extract context for each missing keyword
-    jobtext = []
-    for line in job_text.splitlines():
-        jobtext.extend([word for word in line.split()])
-    print("jobtext:",jobtext)
+    # build missing keywords dictionary with proper context extraction
+    jd_tokens = tokenize(job_text)
 
     for kw, wgt in jd_keywords.items():
-        if kw not in matched_keywords:
-            context_before = ""
-            context_after = ""
-            missing_keywords.update({kw : [context_before, context_after]})
-            length = len(kw.split())
-            if length == 1:
-                for word in jobtext:
-                    i = jobtext.index(word)
-                    if i >= 3: context_before = " ".join([jobtext[i-3], jobtext[i-2], jobtext[i-1]])
-                    elif i >= 2: context_before = " ".join([jobtext[i-2], jobtext[i-1]])
-                    elif i >= 1: context_before = jobtext[i-1]
-                    if i < len(jobtext) - 3: context_after = " ".join([jobtext[i+1], jobtext[i+2], jobtext[i+3]])
-                    elif i < len(jobtext) - 2: context_after = " ".join([jobtext[i+1], jobtext[i+2]])
-                    elif i < len(jobtext) - 1: context_after = jobtext[i+1]
+        if kw in matched_keywords:
+            continue
 
-                    pattern = r"\b" + kw.lower() + r"\b"
-                    if kw not in matched_keywords and re.search(pattern, word.lower()):
-                        missing_keywords.update({kw : [context_before, context_after]})
-            elif length > 1:
-                # find location of kw in jobtext array
-                print("multi word kw detected:", kw)
-                i = -1
-                for word in jobtext:
-                    i = jobtext.index(word)
-                    if i < len(jobtext) - (length-1):
-                        match = False
-                        for k in range(0,length): # e.g. if kw has 2 words, k iterates thru 0 and 1.
-                            match = re.sub(r'[^a-zA-Z0-9 ]', '', jobtext[i+k]) == kw.split()[k]
-                        if match:
-                            k = i+1
-                            while k < len(jobtext):
-                                concat = re.sub(r'[^a-zA-Z0-9 ]', '', " ".join([word, jobtext[k]]))
-                                print("concat:",concat)
-                                if concat == kw and i >= 0: 
-                                    print("kw passed i >= 0:",kw)
-                                    if i >= 3: context_before = " ".join([jobtext[i-3], jobtext[i-2], jobtext[i-1]])
-                                    elif i >= 2: context_before = " ".join([jobtext[i-2], jobtext[i-1]])
-                                    elif i >= 1: context_before = jobtext[i-1]
-                                    if i < len(jobtext) - 3: context_after = " ".join([jobtext[i+length], jobtext[i+length+1], jobtext[i+length+2]])
-                                    elif i < len(jobtext) - 2: context_after = " ".join([jobtext[i+length], jobtext[i+length+1]])
-                                    elif i < len(jobtext) - 1: context_after = jobtext[i+length]
-                                    
-                                    missing_keywords.update({kw : [context_before, context_after]})
-                                    break
-                                elif concat not in kw:
-                                    i = -1
-                                    break
-                                k = k + 1
+        kw_tokens = tokenize(kw)
+        contexts = []
+
+        for idx in find_keyword_occurrences(jd_tokens, kw_tokens):
+            before, after = extract_context(jd_tokens, idx, len(kw_tokens))
+            contexts.append([before, after])
+
+        # store first occurrence only
+        if contexts:
+            missing_keywords[kw] = contexts[0]
+        else:
+            missing_keywords[kw] = ["", ""]
             
     section_scores_jd = [0.0, 0.0, 0.0, 0.0]
     section_scores_res = [0.0, 0.0, 0.0, 0.0]
@@ -242,8 +230,9 @@ def get_weighted_score(resume_text: str, job_text: str, category: str):
     jd_tokens = extract_keywords(job_text)
     semantic_score = semantic_match_score(resume_tokens, jd_tokens)
 
-    # calculate final score: 80% keyword score, 20% semantics
-    final_score = 0.8 * keyword_score + 0.2 * semantic_score
+    # calculate final score
+    # final_score = 0.8 * keyword_score + 0.2 * semantic_score
+    final_score = keyword_score * (0.6 + 0.4 * semantic_score)
 
     # normalize: floor at 25, cap at 95 (don't know if this needed)
     # normalised_score = np.clip(25 + final_score * 75, 0, 100)

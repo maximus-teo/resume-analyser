@@ -52,6 +52,15 @@ button:hover {
   padding: 2rem;
 }
 
+.jd-container {
+  height: fit-content;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
 .resume-container,
 .results-container {
   flex: 1;
@@ -60,6 +69,11 @@ button:hover {
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
+}
+
+.main-container h1, h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
 }
 
 .keywords {

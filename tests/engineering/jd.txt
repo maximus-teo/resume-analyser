@@ -1,0 +1,8 @@
+A degree in: Computer Science, Engineering, or a related field, or equivalent experience.
+Strong interest in robotics, automation, and R&D with a desire to learn and grow in the field.
+Experience with programming languages such as C#, C++, and Python along with strong knowledge of embedded development environments, debugging tools, and communication protocols like RS-485
+Experience or interest in machine vision systems, including libraries like OpenCV (a plus but not required!).
+Understanding of motion control and automation technologies.
+Experience with EtherCAT system development.
+Ability to work collaboratively in a team, with a focus on problem-solving and innovation.
+A passion for technology and a willingness to dive into hands-on development and testing.
