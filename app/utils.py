@@ -154,7 +154,8 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
             context_before = ""
             context_after = ""
             missing_keywords.update({kw : [context_before, context_after]})
-            if len(kw.split()) == 1:
+            length = len(kw.split())
+            if length == 1:
                 for word in jobtext:
                     i = jobtext.index(word)
                     if i >= 3: context_before = " ".join([jobtext[i-3], jobtext[i-2], jobtext[i-1]])
@@ -167,15 +168,15 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
                     pattern = r"\b" + kw.lower() + r"\b"
                     if kw not in matched_keywords and re.search(pattern, word.lower()):
                         missing_keywords.update({kw : [context_before, context_after]})
-            elif len(kw.split()) > 1:
+            elif length > 1:
                 # find location of kw in jobtext array
                 print("multi word kw detected:", kw)
                 i = -1
                 for word in jobtext:
                     i = jobtext.index(word)
-                    if i < len(jobtext) - (len(kw.split())-1):
+                    if i < len(jobtext) - (length-1):
                         match = False
-                        for k in range(0,len(kw.split())): # e.g. if kw has 2 words, k iterates thru 0 and 1.
+                        for k in range(0,length): # e.g. if kw has 2 words, k iterates thru 0 and 1.
                             match = re.sub(r'[^a-zA-Z0-9 ]', '', jobtext[i+k]) == kw.split()[k]
                         if match:
                             k = i+1
@@ -187,9 +188,9 @@ def section_weighted_score(resume_sections, job_text, keywords): # NOTE: keyword
                                     if i >= 3: context_before = " ".join([jobtext[i-3], jobtext[i-2], jobtext[i-1]])
                                     elif i >= 2: context_before = " ".join([jobtext[i-2], jobtext[i-1]])
                                     elif i >= 1: context_before = jobtext[i-1]
-                                    if i < len(jobtext) - 3: context_after = " ".join([jobtext[i+len(kw.split())], jobtext[i+len(kw.split())+1], jobtext[i+len(kw.split())+2]])
-                                    elif i < len(jobtext) - 2: context_after = " ".join([jobtext[i+len(kw.split())], jobtext[i+len(kw.split())+1]])
-                                    elif i < len(jobtext) - 1: context_after = jobtext[i+len(kw.split())]
+                                    if i < len(jobtext) - 3: context_after = " ".join([jobtext[i+length], jobtext[i+length+1], jobtext[i+length+2]])
+                                    elif i < len(jobtext) - 2: context_after = " ".join([jobtext[i+length], jobtext[i+length+1]])
+                                    elif i < len(jobtext) - 1: context_after = jobtext[i+length]
                                     
                                     missing_keywords.update({kw : [context_before, context_after]})
                                     break
@@ -245,14 +246,14 @@ def get_weighted_score(resume_text: str, job_text: str, category: str):
     final_score = 0.8 * keyword_score + 0.2 * semantic_score
 
     # normalize: floor at 25, cap at 95 (don't know if this needed)
-    normalised_score = np.clip(25 + final_score * 75, 0, 100)
+    # normalised_score = np.clip(25 + final_score * 75, 0, 100)
     
     resume_sections = {
         section: text.split("%nl%")
         for section, text in resume_sections.items()
         }
 
-    return (round(normalised_score),
+    return (round(final_score*100,2),
             round(keyword_score*100,2),
             resume_sections,
             section_scores,

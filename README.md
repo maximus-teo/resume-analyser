@@ -17,7 +17,6 @@ Companies often use an ATS to automatically screen, sort and rank potential cand
 
 - This resume analyser searches for keywords and phrases, not entire sentences
 - Match score is based on number of overlaps between the resume and job listing
-- Bonus points are given if select keywords are found in the resume, job listing and the curated dictionary
 
 ## How it works
 
@@ -54,11 +53,11 @@ The match score has a weight distribution of 80% keywords, 20% semantics (using 
    .\venv\Scripts\Activate.ps1
    ```
    If needed, execute the command `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` to allow running scripts on your system.
-4. Make sure all required packages are installed. This will take a few minutes to complete.
+4. Make sure all required packages are installed. This could take a few minutes to complete.
    ```
    pip install -r requirements.txt
    ```
-   You may have to manually install the spaCy package:
+   You may have to manually install the following spaCy package:
    ```
    python -m spacy download en_core_web_md
    ```
