@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyser | AI-Powered Optimisation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        glass: 'rgba(255, 255, 255, 0.25)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<!-- removed <body class="flex items-center justify-center min-h-screen gradient-bg p-4"> -->
+
+<body class="p-10 text-center">
+    <h1
+        class="text-4xl md:text-5xl font-bold h-20 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+        Let's get you that job.
+    </h1>
+    <p class="text-gray-600 mb-10 text-lg">
+        <strong>Optimise your resume</strong> for the ATS with AI-driven insights. Match key terms, analyse
+        semantics and get a personalised scoring breakdown.
+    </p>
+    <div class="container mx-auto max-w-4xl">
+        <form action="/analyse" method="post" enctype="multipart/form-data" class="space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <!-- Resume Upload Section -->
+                <div class="glass-card rounded-3xl p-4 md:p-8 text-center">
+                    <div class="space-y-4">
+                        <label class="block text-xl font-semibold text-gray-700">Resume</label>
+
+                        <div class="relative group">
+                            <div
+                                class="absolute -inset-0.5 rounded-xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200">
+                            </div>
+
+                            <div class="relative glass-input rounded-xl p-6 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors cursor-pointer min-h-[200px]"
+                                id="resume-dropzone">
+                                <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                    </path>
+                                </svg>
+                                <p class="text-gray-500 text-sm mb-2">Drag & Drop Resume (PDF)</p>
+                                <input type="file" name="resume_pdf" accept=".pdf" class="hidden" id="resume_pdf">
+                                <button type="button" onclick="document.getElementById('resume_pdf').click()"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-lg">Browse
+                                    File</button>
+                                <p id="resume-filename" class="mt-2 text-sm text-green-600 font-semibold"></p>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <span class="text-gray-500 text-sm">OR PASTE TEXT</span>
+                        </div>
+                        <textarea name="resume_textarea" placeholder="Paste resume text here..."
+                            class="w-full glass-input rounded-xl p-4 h-32 focus:outline-none text-sm"></textarea>
+                    </div>
+                </div>
+
+                <!-- Job Description Upload Section -->
+                <div class="glass-card rounded-3xl p-4 md:p-8 text-center">
+
+                    <div class="space-y-4">
+                        <label class="block text-xl font-semibold text-gray-700">Job Description</label>
+
+                        <div class="relative group">
+                            <div
+                                class="absolute -inset-0.5 rounded-xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200">
+                            </div>
+
+                            <div class="relative glass-input rounded-xl p-6 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors cursor-pointer min-h-[200px]"
+                                id="job-dropzone">
+                                <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                <p class="text-gray-500 text-sm mb-2">Drag & Drop JD (PDF)</p>
+                                <input type="file" name="jobdesc_pdf" accept=".pdf" class="hidden" id="jobdesc_pdf">
+                                <button type="button" onclick="document.getElementById('jobdesc_pdf').click()"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-lg">Browse
+                                    File</button>
+                                <p id="job-filename" class="mt-2 text-sm text-green-600 font-semibold"></p>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <span class="text-gray-500 text-sm">OR PASTE TEXT</span>
+                        </div>
+                        <textarea name="jobdesc_textarea" placeholder="Paste job description text here..."
+                            class="w-full glass-input rounded-xl p-4 h-32 focus:outline-none text-sm"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Selection -->
+            <div class="max-w-md mx-auto">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Target Industry (Keyword
+                    Optimization)</label>
+                <select name="jobdesc_category" class="w-full glass-input rounded-xl p-3 focus:outline-none">
+                    <option value="fallback" selected>General / Other</option>
+                    <option value="corporate">Corporate / Business</option>
+                    <option value="engineering">Engineering / Tech</option>
+                    <option value="finance">Finance / Accounting</option>
+                    <option value="marketing">Marketing / Sales</option>
+                    <option value="operations">Operations / Logistics</option>
+                    <option value="science">Science / Healthcare</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center pt-6">
+                <button type="submit"
+                    class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300">
+                    <span
+                        class="relative px-12 py-4 transition-all ease-in-out duration-75 bg-white rounded-md group-hover:bg-opacity-0 font-bold text-lg">
+                        <span
+                            class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 group-hover:text-white">ANALYSE
+                        </span>
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // simple drag and drop logic
+        function setupDropzone(dropzoneId, inputId, filenameId) {
+            const dropzone = document.getElementById(dropzoneId);
+            const input = document.getElementById(inputId);
+            const filename = document.getElementById(filenameId);
+
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('bg-blue-50');
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('bg-blue-50');
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('bg-blue-50');
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    filename.textContent = e.dataTransfer.files[0].name;
+                }
+            });
+
+            input.addEventListener('change', () => {
+                if (input.files.length) {
+                    filename.textContent = input.files[0].name;
+                }
+            });
+        }
+
+        setupDropzone('resume-dropzone', 'resume_pdf', 'resume-filename');
+        setupDropzone('job-dropzone', 'jobdesc_pdf', 'job-filename');
+    </script>
+</body>
+
+</html>

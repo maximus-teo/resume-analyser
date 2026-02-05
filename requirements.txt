@@ -1,6 +1,9 @@
 fastapi
 uvicorn
-pdfminer.six
-spacy
 python-multipart
 jinja2
+pdfminer.six
+spacy
+numpy
+groq
+python-dotenv

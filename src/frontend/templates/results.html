@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results | Resume Analyser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        glass: 'rgba(255, 255, 255, 0.25)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Gauge Animation */
+        .gauge-bg {
+            fill: none;
+            stroke: #e5e7eb;
+            stroke-width: 10;
+        }
+
+        .gauge-value {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 10;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dasharray 1s ease-out;
+        }
+    </style>
+</head>
+
+<body class="p-10">
+
+    <div class="container mx-auto max-w-7xl">
+        <!-- Header -->
+        <header class="mb-8 flex justify-between items-center glass-card rounded-2xl p-6">
+            <a href="/"
+                class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Smart
+                Resume Analyser</a>
+            <a href="/" class="bg-white/50 hover:bg-white/80 transition px-4 py-2 rounded-lg text-sm font-medium">New
+                Analysis</a>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Left Panel: Score & Overview (4 cols) -->
+            <div class="lg:col-span-4 space-y-6">
+
+                <!-- Match Score Card -->
+                <div
+                    class="glass-card rounded-3xl p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-6">ATS Match Score</h2>
+
+                    <div class="relative w-48 h-48">
+                        <svg class="w-full h-full" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#3b82f6" />
+                                    <stop offset="100%" stop-color="#8b5cf6" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="gauge-bg" cx="50" cy="50" r="40" />
+                            <circle class="gauge-value" cx="50" cy="50" r="40"
+                                stroke-dasharray="{{ score * 2.51 }}, 251" />
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center flex-col">
+                            <span class="text-3xl font-bold text-gray-800">{{ score }}%</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 text-sm text-gray-500">
+                        Based on {{ job_category }} criteria
+                    </div>
+                </div>
+
+                <!-- Section Scores -->
+                <div class="glass-card rounded-3xl p-6">
+                    <h3 class="font-semibold text-gray-700 mb-4">Section Breakdown</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Skills</span>
+                                <span class="font-bold">{{ section_scores[3] }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: {{ section_scores[3] }}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Experience</span>
+                                <span class="font-bold">{{ section_scores[2] }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-purple-500 h-2 rounded-full" style="width: {{ section_scores[2] }}%">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Education</span>
+                                <span class="font-bold">{{ section_scores[1] }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-teal-500 h-2 rounded-full" style="width: {{ section_scores[1] }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if ai_resume_data %}
+                <!-- AI Insights Summary -->
+                <div class="glass-card rounded-3xl p-6">
+                    <h3 class="font-semibold text-gray-700 mb-2">AI Summary</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        {{ ai_resume_data.summary }}
+                    </p>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Right Panel: Detailed Analysis (8 cols) -->
+            <div class="lg:col-span-8 space-y-6">
+
+                <!-- Keyword Analysis -->
+                <div class="glass-card rounded-3xl p-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Keyword Analysis</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="flex items-center text-green-600 font-semibold mb-3">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Matched Terms
+                            </h3>
+                            <div class="flex flex-wrap gap-2">
+                                {% for kw, weight in matched_keywords.items() %}
+                                <span
+                                    class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm border border-green-200">
+                                    {{ kw }}
+                                </span>
+                                {% endfor %}
+                                {% if not matched_keywords %}
+                                <span class="text-sm text-gray-400 italic">No exact keyword matches found.</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="flex items-center text-red-500 font-semibold mb-3">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                    </path>
+                                </svg>
+                                Missing Terms
+                            </h3>
+                            <div class="flex flex-wrap gap-2">
+                                {% for kw, context in missing_keywords.items() %}
+                                <div class="group relative">
+                                    <span
+                                        class="px-3 py-1 bg-red-50 text-red-600 rounded-full text-sm border border-red-100 cursor-help">
+                                        {{ kw }}
+                                    </span>
+                                    {% if context[0] or context[1] %}
+                                    <div
+                                        class="absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none shadow-xl">
+                                        ... {{ context[0] }} <strong>{{ kw }}</strong> {{ context[1] }} ...
+                                        <div
+                                            class="absolute top-100 left-1/2 -ml-2 border-solid border-t-gray-900 border-t-8 border-x-transparent border-x-8 border-b-0">
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                {% if not missing_keywords %}
+                                <span class="text-sm text-gray-400 italic">No missing critical keywords found.
+                                    Excellent!</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Extracted Data Visualization (New Feature) -->
+                {% if ai_resume_data %}
+                <div class="glass-card rounded-3xl p-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Extracted Resume Profile</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+
+                        <div>
+                            <h4 class="font-semibold text-gray-600 mb-2">Experience</h4>
+                            <div class="space-y-3">
+                                {% for exp in ai_resume_data.experience %}
+                                <div class="p-3 bg-white/50 rounded-lg">
+                                    <div class="font-bold text-gray-800">{{ exp.role }}</div>
+                                    <div class="text-blue-600 text-xs">{{ exp.company }}</div>
+                                    <div class="text-gray-500 text-xs mt-1">{{ exp.duration }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-gray-600 mb-2">Education</h4>
+                            <div class="space-y-3">
+                                {% for edu in ai_resume_data.education %}
+                                <div class="p-3 bg-white/50 rounded-lg">
+                                    <div class="font-bold text-gray-800">{{ edu.institution }}</div>
+                                    <div class="text-gray-600 text-xs">{{ edu.degree }}</div>
+                                    <div class="text-gray-500 text-xs mt-1">{{ edu.date }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-gray-600 mb-2">Projects</h4>
+                            <div class="space-y-3">
+                                {% for proj in ai_resume_data.projects %}
+                                <div class="p-3 bg-white/50 rounded-lg">
+                                    <div class="font-bold text-gray-800">{{ proj.name }}</div>
+                                    {% for tool in proj.tools_used %}
+                                    <span
+                                        class="px-1 bg-blue-100 text-blue-500 rounded-full text-xs border border-blue-200 mt-2 mr-1">
+                                        {{ tool }}
+                                    </span>
+                                    {% endfor %}
+                                    <div class="text-gray-500 text-xs mt-1">{{ proj.date }}</div>
+                                    <div class="text-gray-500 text-xs mt-1">{{ proj.summary }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

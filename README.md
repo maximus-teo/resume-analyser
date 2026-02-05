@@ -38,13 +38,13 @@ Compare 'matched' and 'jd' dictionaries, filtering out keywords to add to a 'mis
 ### 6. Calculate match score
 The match score has a weight distribution of 80% keywords, 20% semantics (using NLP by spaCy). The keywords scoring algorithm is done by partitioning the resume into four sections (skills, experience, education and others) with descending weights respectively. Each matched keyword in the resume and JD receives its respective weight based on the section it is found in, and the total weights are tallied up. The final percentage is calculated by taking the total resume weight divided by the total JD weight.
 
-## How to use
+## How to host this on your machine
 
 1. Clone this repository
    ```
    git clone https://github.com/maximus-teo/resume-analyser.git
    ```
-2. Start by creating a virtual environment (`venv`) with
+2. Create a virtual environment (`venv`) with
    ```
    python -m venv venv
    ```
@@ -53,16 +53,20 @@ The match score has a weight distribution of 80% keywords, 20% semantics (using 
    .\venv\Scripts\Activate.ps1
    ```
    If needed, execute the command `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` to allow running scripts on your system.
-4. Make sure all required packages are installed. This could take a few minutes to complete.
+4. Make sure all required packages are installed. This may take a few minutes to complete.
    ```
    pip install -r requirements.txt
    ```
-   You may have to manually install the following spaCy package:
+   You may have to manually install the following `spaCy` package:
    ```
    python -m spacy download en_core_web_md
    ```
-5. Reload Uvicorn ASGI
+5. Create a `.env` file and add your Groq API key with the format:
    ```
-   uvicorn app.main:app --reload
+   GROQ_API_KEY=your_key_here
    ```
-6. Go to `https://localhost:8000/` to test
+6. Reload Uvicorn ASGI
+   ```
+   uvicorn src.backend.main:app --reload
+   ```
+7. Go to `https://localhost:8000/` to test
