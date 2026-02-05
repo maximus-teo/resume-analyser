@@ -15,6 +15,16 @@ from src.backend.services.ai_service import ai_service
 
 app = FastAPI(title="Resume Analyser")
 
+# Add CORS Middleware to allow requests from any origin (e.g. GitHub Pages, Localhost)
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
 # Setup paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "src", "frontend", "templates")
